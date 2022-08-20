@@ -37,3 +37,15 @@ export async function deleteLocalFiles(files: Array<string>) {
     fs.unlinkSync(file);
   }
 }
+
+// isImage
+// helper function to check if the url is for an image using well known extensions (it have the common used extensions)
+// useful to check the url provided by the GET request
+// INPUTS
+//    url : string    url to check
+// RETURNS
+//    true if url valid, false elsewhere
+// CREDITS : https://bobbyhadz.com/blog/javascript-check-if-url-is-image
+export function isImage(url : string) {
+  return /\.(jpg|jpeg|png|webp|avif|gif|svg)$/.test(url);
+}

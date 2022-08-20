@@ -1,6 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import {filterImageFromURL, deleteLocalFiles} from './util/util';
+import {filterImageFromURL, deleteLocalFiles, isImage} from './util/util';
 
 (async () => {
 
@@ -31,7 +31,7 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
 
   app.get( "/filteredimage/", 
     // Making the call async because of the utilities function used that are async
-    async ( req: Request, res: Response ) => {
+    async ( req, res) => {
       // Retreiving query of the request
       let { image_url } = req.query;
       const url : string = image_url;
@@ -41,29 +41,40 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
         return res.status(400)
                   .send(`url is required`);
       }
-
-      //else
-      // We filter the requested image
-      let filteredimage : string;
-      filteredimage = await filterImageFromURL(url);
-      // If we have a result
-      if(filteredimage){
-        return res.sendFile(filteredimage, filteredimage, function (err) {
-          console.log('Error : ' + err);
-            if (err) {
-              return res.status(400)
-                .send(`An error has occured while sendig filtered image`);
-            } else {
-                deleteLocalFiles([filteredimage]);
-            }
-        });
-      }
-      else
-        // show that there was an error in the filtering
+      // if the url is not for image
+      if(!isImage(url)){
         return res.status(400)
-          .send(`An error has occured while processing image`);
+                  .send('a url of an image is required'); 
+      }
+      
+      
+      let filteredimage : string;
+      
+      // We filter the requested image
+      try{
+        filteredimage = await filterImageFromURL(url);
+        // If we have a result
+        if(filteredimage){
+          return res.sendFile(filteredimage, filteredimage, function (err) {
+              if (err) {
+                return res.status(400)
+                  .send(`An error has occured while sendig filtered image or the url is not valid`);
+              } else {
+                  deleteLocalFiles([filteredimage]);
+              }
+          });
+        }
+        else
+          // show that there was an error in the filtering
+          return res.status(422)
+            .send(`An error has occured while processing image`);
+      }catch(e){
+        return res.status(422)
+          .send(`An error has occured while processing image`); 
+      }
+      
   } );
-  
+
   //! END @TODO1
   
   // Root Endpoint
