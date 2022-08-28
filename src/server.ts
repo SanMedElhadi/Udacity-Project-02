@@ -31,10 +31,10 @@ import {filterImageFromURL, deleteLocalFiles, isImage} from './util/util';
 
   app.get( "/filteredimage/", 
     // Making the call async because of the utilities function used that are async
-    async ( req, res) => {
+    async ( req : express.Request, res : express.Response) => {
       // Retreiving query of the request
-      let { image_url } = req.query;
-      const url : string = image_url;
+      //let { image_url } = req.query;
+      const url : string = req.query.image_url;
 
       // if the url does not exist, we respond by an error
       if ( !url ) {
@@ -47,20 +47,20 @@ import {filterImageFromURL, deleteLocalFiles, isImage} from './util/util';
                   .send('a url of an image is required'); 
       }
       
-      
+      // The path to the filtered image
       let filteredimage : string;
       
       // We filter the requested image
       try{
         filteredimage = await filterImageFromURL(url);
-        // If we have a result
+        // If we have a result, we return the file
         if(filteredimage){
-          return res.sendFile(filteredimage, filteredimage, function (err) {
+          return res.status(200).sendFile(filteredimage, function (err) {
               if (err) {
                 return res.status(400)
                   .send(`An error has occured while sendig filtered image or the url is not valid`);
               } else {
-                  deleteLocalFiles([filteredimage]);
+                  deleteLocalFiles([filteredimage]).catch(Error);
               }
           });
         }
@@ -79,7 +79,7 @@ import {filterImageFromURL, deleteLocalFiles, isImage} from './util/util';
   
   // Root Endpoint
   // Displays a simple message to the user
-  app.get( "/", async ( req, res ) => {
+  app.get( "/", async ( req : express.Request, res : express.Response ) => {
     res.send("try GET /filteredimage?image_url={{}}")
   } );
   
